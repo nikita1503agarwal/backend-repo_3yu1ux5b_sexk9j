@@ -12,7 +12,7 @@ Model name is converted to lowercase for the collection name:
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Literal
 
 # Example schemas (replace with your own):
 
@@ -41,8 +41,13 @@ class Product(BaseModel):
 # Add your own schemas here:
 # --------------------------------------------------
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class LeadIntake(BaseModel):
+    """
+    Lead intake form submission
+    Collection name: "leadintake"
+    """
+    industry: str = Field(..., description="What industry they are in")
+    leads_per_month: str = Field(..., description="How many leads they are getting")
+    bottleneck: str = Field(..., description="Their main bottleneck (follow-up, qualification, something else)")
+    budget: Literal["$1,500", "$3,000", "Discuss first"] | str = Field(..., description="How much they are ready to spend")
+    timeline: str = Field(..., description="When they need the solution ready")

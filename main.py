@@ -1,6 +1,10 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List
+from database import create_document, get_documents
+from schemas import LeadIntake
 
 app = FastAPI()
 
@@ -63,6 +67,28 @@ def test_database():
     response["database_name"] = "✅ Set" if os.getenv("DATABASE_NAME") else "❌ Not Set"
     
     return response
+
+# Lead intake endpoints
+
+@app.post("/api/lead", status_code=201)
+def submit_lead(lead: LeadIntake):
+    try:
+        doc_id = create_document("leadintake", lead)
+        return {"id": doc_id, "message": "Lead submitted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/leads")
+def list_leads(limit: int = 50):
+    try:
+        items = get_documents("leadintake", {}, limit)
+        # Convert ObjectIds to strings for JSON serialization
+        for it in items:
+            if "_id" in it:
+                it["_id"] = str(it["_id"])
+        return {"items": items}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
